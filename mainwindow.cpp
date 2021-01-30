@@ -50,13 +50,13 @@ void MainWindow::on_btnRegistrazione_clicked()
                     else
                         msgRegistrazione.setText("Per registrarsi bisogna essere maggiorenni!");
                 else
-                    msgRegistrazione.setText("Il campo password non può essere vuoto!");
+                    msgRegistrazione.setText("Il campo password non può essere vuoto e non può contenere il carattere ';'!");
             else
                 msgRegistrazione.setText("Inserire numero di telefono o e-mail in un formato corretto");
         else
-            msgRegistrazione.setText("Il campo cognome non può essere vuoto!");
+            msgRegistrazione.setText("Il campo cognome non può essere vuoto e non può contenere il carattere ';'");
     else
-        msgRegistrazione.setText("Il campo nome non può essere vuoto!");
+        msgRegistrazione.setText("Il campo nome non può essere vuoto e non può contenere il carattere ';'!");
 
     msgRegistrazione.exec();
 }
@@ -95,14 +95,14 @@ void MainWindow::on_btnToRegistrati_clicked()
 
 bool MainWindow::checkName()
 {
-    if (ui->txtNome->text() == "")
+    if (ui->txtNome->text() == "" || ui->txtNome->text().contains(';'))
         return false;
     else
         return true;
 }
 bool MainWindow::checkSurname()
 {
-    if (ui->txtCognome->text() == "")
+    if (ui->txtCognome->text() == "" || ui->txtCognome->text().contains(';'))
         return false;
     else
         return true;
@@ -158,7 +158,7 @@ bool MainWindow::checkCellMail()
 }
 bool MainWindow::checkPassword()
 {
-    if (ui->txtPassword->text() == "")
+    if (ui->txtPassword->text() == "" || ui->txtPassword->text().contains(';'))
         return false;
     else
         return true;
