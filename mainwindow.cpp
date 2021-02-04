@@ -11,17 +11,19 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    this->setFixedSize(310,340);
+    //inizializzazione
+    this->setFixedSize(310,340); //imposta la dimensione fissa
+    //nasconde i pulsanti relativi alla schermata di accesso
+    //all'apertura la registrazione visualizza la schermata di registrazione
     ui->btnToRegistrati->setHidden(true);
     ui->btnRecuperaPassword->setHidden(true);
     ui->btnAccedi->setHidden(true);
-    QDate date = QDate::currentDate();
-    ui->dBirthDate->setDate(date);
-    ui->dBirthDate->setMaximumDate(date);
-    ui->dBirthDate->setMinimumDate(QDate::fromString("19000101", "yyyyMMdd"));
-    setAdminUser();
-    checkDbExist();
+    QDate date = QDate::currentDate();//ottengo la data attuale
+    ui->dBirthDate->setDate(date);//imposto come data di default la data attuale
+    ui->dBirthDate->setMaximumDate(date);//imposto come data massima la data attuale, in modo da non poter inserire date future
+    ui->dBirthDate->setMinimumDate(QDate::fromString("19000101", "yyyyMMdd")); //imposto come data minima l'1 gennaio 1900
+    setAdminUser();//richiama il metodo per inizializzare l'utente amministratore
+    checkDbExist();//richiama il metodo per controllare l'esistenza del file csv contenente i dati degli utenti registrati
 }
 
 MainWindow::~MainWindow()
@@ -31,19 +33,21 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btnRegistrazione_clicked()
 {
+    //quando viene premuto il pulsante btnRegistrazione esegue i controlli sui dati inseriti
+    //e, nel caso vadano a buon fine, inserirsce l'utente nel file csv, altrimenti visualizza un messaggio di errore
     QMessageBox msgRegistrazione;
-    if (checkName())
-        if (checkSurname())
-            if (checkCellMail())
-                if (checkPassword())
-                    if (checkBirthDate())
-                        if (checkGender())
-                            if(checkIfReg())
+    if (checkName()) //richiama il metodo per il controllo sul nome
+        if (checkSurname()) //richiama il metodo per il controllo sul cognome
+            if (checkCellMail()) //richiama il metodo per il controllo sulla mail o sul numero di telefono
+                if (checkPassword()) //richiama il metodo per il controllo sulla password
+                    if (checkBirthDate()) //richiama il metodo per il controllo sulla data di nascita
+                        if (checkGender()) //richiama il metodo per il controllo sul genere
+                            if(checkIfReg()) //richiama il metodo per controllare se l'utente è già registrato
                                 msgRegistrazione.setText("Utente già registrato!");
                             else{
-                                insertNewUser();
+                                insertNewUser(); //richiama il metodo per inserire il nuovo utente nel file csv
                                 msgRegistrazione.setText("Registrazione eseguita!\nBenvenuto/a " + ui->txtNome->text() + " "+ui->txtCognome->text() +"!");
-                                clearDati();
+                                clearDati(); //richiama il metodo per resettare i campi di input
                             }
                         else
                             msgRegistrazione.setText("Selezionare il genere!");
@@ -65,6 +69,8 @@ void MainWindow::on_btnRegistrazione_clicked()
 
 void MainWindow::on_btnToAccedi_clicked()
 {
+    //quando viene premuto il pulsante btnToAccedi si passa dalla visualizzazione della schermata
+    //di registrazione a quella dell'accesso
     clearDati();
     ui->btnRegistrazione->setHidden(true);
     ui->btnToAccedi->setHidden(true);
@@ -80,6 +86,8 @@ void MainWindow::on_btnToAccedi_clicked()
 
 void MainWindow::on_btnToRegistrati_clicked()
 {
+    //quando viene premuto il pulsante btnToRegistrati si passa dalla visualizzazione della schermata
+    //di accesso a quella della registrazione
     clearDati();
     ui->btnRegistrazione->setHidden(false);
     ui->btnToAccedi->setHidden(false);
@@ -93,14 +101,14 @@ void MainWindow::on_btnToRegistrati_clicked()
     ui->btnRecuperaPassword->setHidden(true);
 }
 
-bool MainWindow::checkName()
+bool MainWindow::checkName() //controllo che il campo nome non sia vuoto e non contenga ; per evitare problemi di gestione del csv
 {
     if (ui->txtNome->text() == "" || ui->txtNome->text().contains(';'))
         return false;
     else
         return true;
 }
-bool MainWindow::checkSurname()
+bool MainWindow::checkSurname() //controllo che il campo cognome non sia vuoto e non contenga ; per evitare problemi di gestione del csv
 {
     if (ui->txtCognome->text() == "" || ui->txtCognome->text().contains(';'))
         return false;
@@ -109,11 +117,13 @@ bool MainWindow::checkSurname()
 }
 bool MainWindow::checkCellMail()
 {
+    //controllo che il campo mail o numero di cellulare non sia vuoto e che sia in un formato corretto
     QString cellMail = ui->txtCellMail->text();
     QString nomeutente, dominio = "";
     QStringList check;
     //CONTROLLO MAIL
-    if (cellMail.contains('@') && cellMail.contains('.')){
+    //controllo che la mail sia nel formato <nomeutente>@<dominio>
+    if (cellMail.contains('@') && cellMail.contains('.')){//controllo se sono prensenti @ e .
 
         check=cellMail.split('@');
         nomeutente=check[0];
@@ -145,6 +155,7 @@ bool MainWindow::checkCellMail()
         return true;
     }
     //CONTROLLO NUMERO DI TELEFONO
+    //controllo che il numero inserito sia di 10 cifre, e che tutte siano cifre e non siano presenti altri tipi di carattere
     if (cellMail.length() == 10){
         for (int i=0; i<cellMail.length(); i++){
             if (!cellMail[i].isDigit())
@@ -156,46 +167,44 @@ bool MainWindow::checkCellMail()
         return false;
 
 }
-bool MainWindow::checkPassword()
+bool MainWindow::checkPassword() //controllo che il campo password non sia vuoto e non contenga ; per evitare problemi di gestione del csv
 {
     if (ui->txtPassword->text() == "" || ui->txtPassword->text().contains(';'))
         return false;
     else
         return true;
 }
-bool MainWindow::checkBirthDate()
+bool MainWindow::checkBirthDate() //controllo che l'utente sia maggiorenne
 {
     QDate date = QDate::currentDate();
     QDate dataNascita = ui->dBirthDate->date();
 
-    if (dataNascita.addYears(18)>date)
+    if (dataNascita.addYears(18)>date) //aggiungo 18 anni alla data di nascita, se è una data futura, allora l'utente non è maggiorenne
         return false;
     return true;
 }
-bool MainWindow::checkGender()
+bool MainWindow::checkGender() //controllo che almeno uno dei due generi sia selezionato
 {
     if (ui->rbtn_male->isChecked() || ui->rbt_female->isChecked())
         return true;
     return false;
 }
 
-void MainWindow::checkDbExist()
+void MainWindow::checkDbExist() //controllo l'esistenza del file csv
 {
     QString path = QApplication::applicationDirPath()+"/db/";
     QDir dir(path);
 
-    if (!dir.exists())
+    if (!dir.exists()) //controllo l'esistenza della directory, se non esiste la creo
         dir.mkpath(path);
 
-    if (!userListCsv.exists()){
-        userListCsv.setFileName(path+"user_list.csv");
-        userListCsv.open(QIODevice::ReadOnly);
-        userListCsv.close();
-    }
+    userListCsv.setFileName(path+"user_list.csv"); //imposto il nome del file, all'apertura, se non esiste il file viene creato
+    userListCsv.open(QIODevice::Append);
+    userListCsv.close();
 
 }
 
-void MainWindow::setAdminUser()
+void MainWindow::setAdminUser() //inizializzo i dati dell'utente amministratore
 {
     admin.nome = "Luca";
     admin.cognome = "Scurati";
@@ -205,32 +214,36 @@ void MainWindow::setAdminUser()
     admin.genere = 'M';
 }
 
-bool MainWindow::checkIfReg()
+bool MainWindow::checkIfReg() //controllo se l'utente è già registrato
 {
     bool find = false;
     userListCsv.open(QIODevice::ReadOnly);
-    QTextStream inputStream(&userListCsv);
+    QTextStream inputStream(&userListCsv); //apro lo stream per leggere all'interno del file
     while (!inputStream.atEnd() && !find) {
+        //finchè non arriva alla fine del file e non ho gia trovato l'utente, leggo una nuova riga e effettuo il controllo
         QStringList userString = inputStream.readLine().split(';');
         if (ui->txtCellMail->text() == userString[0]) //0 perchè nel csv la mail è il primo parametro
-            find = true;
+            find = true; //se ho trovato l'utente nel csv allora setto a true il flag che indica che l'utente è già registrato
     }
     inputStream.flush();
     userListCsv.close();
     return find;
 }
 
-bool MainWindow::checkCredential()
+bool MainWindow::checkCredential()//controllo se le credenziali inserite per l'accesso sono corrette
 {
     QMessageBox msgAccedi;
     user userLogin;
     bool find = false;
     userListCsv.open(QIODevice::ReadOnly);
-    QTextStream inputStream(&userListCsv);
+    QTextStream inputStream(&userListCsv); //apro lo stream per leggere all'interno del file
     while (!inputStream.atEnd() && !find) {
+        //finchè non arriva alla fine del file e non ho gia trovato l'utente, leggo una nuova riga e effettuo il controllo
         QStringList userString = inputStream.readLine().split(';');
+        //se trovo l'utente procedo con il controllo della password
         if (ui->txtCellMail->text() == userString[0]) //0 perchè nel csv la mail è il primo parametro
         {
+            //se la password è corretta visualizzo il messaggio di benvenuto, altrimenti visualizzo il messaggio di errore
             if (ui->txtPassword->text() == userString[1]) //1 perchè nel csv la password è il secondo parametro
                 msgAccedi.setText("Accesso eseguito!\nBenvenuto/a " + userString[2] + " " + userString[3] +"!"); //2 e 3 perchè nel csv nome e cognome sono terzo e quarto parametro
             else
@@ -244,7 +257,7 @@ bool MainWindow::checkCredential()
     return find;
 }
 
-bool MainWindow::checkIfAdmin()
+bool MainWindow::checkIfAdmin() //controllo se l'utente ha inserito le credenziali dell'amministratore
 {
     if (ui->txtCellMail->text() == admin.cellMail)
         return true;
@@ -253,8 +266,9 @@ bool MainWindow::checkIfAdmin()
 
 }
 
-void MainWindow::insertNewUser()
+void MainWindow::insertNewUser()//metodo per l'insermento di un nuovo utente
 {
+    //memorizzo i dati del nuovo utente
     user u;
     u.nome = ui->txtNome->text();
     u.cognome = ui->txtCognome->text();
@@ -268,13 +282,15 @@ void MainWindow::insertNewUser()
     u.dataNascita = ui->dBirthDate->date();
 
     userListCsv.open(QIODevice::Append);
-    QTextStream outputStream(&userListCsv);
+    QTextStream outputStream(&userListCsv);//apro lo stream per scrivere alla fine del file
     outputStream << u.cellMail << ";" << u.password << ";" << u.nome << ";" << u.cognome << ";" << u.dataNascita.toString("yyyyMMdd")<< ";" << u.genere <<"\n";
+    //aggiungo una nuova riga al file con i dati dell'utente
     outputStream.flush();
     userListCsv.close();
 }
 
 void MainWindow::clearDati(){
+    //setto i campi testo vuoti, inizializzo la data di nascita alla data corrente e rimuovo la scelta del genere
     ui->txtNome->setText("");
     ui->txtCognome->setText("");
     ui->txtCellMail->setText("");
@@ -283,21 +299,23 @@ void MainWindow::clearDati(){
     if(ui->rbtn_male->isChecked())
     {this->ui->rbtn_male->setAutoExclusive(false);
         this->ui->rbtn_male->setChecked(false);
-    this->ui->rbtn_male->setAutoExclusive(true);
+        this->ui->rbtn_male->setAutoExclusive(true);
     }
     else
     {this->ui->rbt_female->setAutoExclusive(false);
         this->ui->rbt_female->setChecked(false);
-    this->ui->rbt_female->setAutoExclusive(true);}
+        this->ui->rbt_female->setAutoExclusive(true);}
 }
 
-void MainWindow::on_btnRecuperaPassword_clicked()
+void MainWindow::on_btnRecuperaPassword_clicked()//metodo utilizzato per il reset della password
 {
     QMessageBox msgRecuperoPassword;
 
-    if (!checkCellMail())
+    if (!checkCellMail()) //controllo sul formato della mail o del numero di cellulare
         msgRecuperoPassword.setText("Inserire numero di telefono o e-mail in un formato corretto");
     else{
+        //se il controllo va a buon fine controllo se l'utente è registrato e, in caso positivo visualizzo
+        //il messaggio di mail o sms inviati correttamente, altrimenti visualizzo il messaggio di utente non registrato
         if (checkIfReg())
             msgRecuperoPassword.setText("E-Mail/SMS di recupero password inviata/o correttamente");
         else
@@ -307,13 +325,14 @@ void MainWindow::on_btnRecuperaPassword_clicked()
     msgRecuperoPassword.exec();
 }
 
-void MainWindow::on_btnAccedi_clicked()
+void MainWindow::on_btnAccedi_clicked() //metodo utilizzato per l'accesso
 {
     QMessageBox msgAccedi;
-    if (checkCellMail())
-        if (checkPassword()){
-            if (!checkIfAdmin()){
+    if (checkCellMail()) //controllo sul formato della mail o del numero di cellulare
+        if (checkPassword()){ //controllo sul formato della password
+            if (!checkIfAdmin()){ //controllo se la mail inserita è quella dell'utente admin
                 if (!checkCredential()){
+                    //se l'utente non è amministratore richiamo il metodo per verificare la correttezza delle credenaizli inserite
                     msgAccedi.setText("Utente "+ ui->txtCellMail->text() +" non registrato");
                     msgAccedi.exec();
                 }
@@ -321,6 +340,8 @@ void MainWindow::on_btnAccedi_clicked()
             else
             {//controllo password amministratore
                 if (ui->txtPassword->text() == admin.password){
+                    //se la password è corretta visualizzo i grafici relativi al genere e all'età
+                    //richiamando il metodo setChart e passando il riferimento al file
                     AdminView aw(this);
                     aw.setModal(true);
                     this->hide();
@@ -330,17 +351,21 @@ void MainWindow::on_btnAccedi_clicked()
                 }
                 else
                 {
+                    //se la password è errata visualizzo un messaggio di errore
                     msgAccedi.setText("Password Errata!");
-                msgAccedi.exec();
+                    msgAccedi.exec();
                 }
             }
         }
         else{
+            //se il campo password è vuoto visualizzo un messaggio di errore
             msgAccedi.setText("Il campo password non può essere vuoto!");
             msgAccedi.exec();
         }
     else
     {
+        //se il campo mail o cell è vuoto o non è stato inserito un'indirizzo mail o un numero di telefono valido
+        //visualizzo un messaggio di errore
         msgAccedi.setText("Inserire numero di telefono o e-mail in un formato corretto");
         msgAccedi.exec();
     }
