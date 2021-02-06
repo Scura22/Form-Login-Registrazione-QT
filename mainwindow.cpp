@@ -38,25 +38,28 @@ void MainWindow::on_btnRegistrazione_clicked()
     QMessageBox msgRegistrazione;
     if (checkName()) //richiama il metodo per il controllo sul nome
         if (checkSurname()) //richiama il metodo per il controllo sul cognome
-            if (checkCellMail()) //richiama il metodo per il controllo sulla mail o sul numero di telefono
-                if (checkPassword()) //richiama il metodo per il controllo sulla password
-                    if (checkBirthDate()) //richiama il metodo per il controllo sulla data di nascita
-                        if (checkGender()) //richiama il metodo per il controllo sul genere
-                            if(checkIfReg()) //richiama il metodo per controllare se l'utente è già registrato
-                                msgRegistrazione.setText("Utente già registrato!");
-                            else{
-                                insertNewUser(); //richiama il metodo per inserire il nuovo utente nel file csv
-                                msgRegistrazione.setText("Registrazione eseguita!\nBenvenuto/a " + ui->txtNome->text() + " "+ui->txtCognome->text() +"!");
-                                clearDati(); //richiama il metodo per resettare i campi di input
-                            }
+            if (checkMailAdmin()) //richiama il metodo per controllare che la mail non sia quella dell'utente admin
+                if (checkCellMail()) //richiama il metodo per il controllo sulla mail o sul numero di telefono
+                    if (checkPassword()) //richiama il metodo per il controllo sulla password
+                        if (checkBirthDate()) //richiama il metodo per il controllo sulla data di nascita
+                            if (checkGender()) //richiama il metodo per il controllo sul genere
+                                if(checkIfReg()) //richiama il metodo per controllare se l'utente è già registrato
+                                    msgRegistrazione.setText("Utente già registrato!");
+                                else{
+                                    insertNewUser(); //richiama il metodo per inserire il nuovo utente nel file csv
+                                    msgRegistrazione.setText("Registrazione eseguita!\nBenvenuto/a " + ui->txtNome->text() + " "+ui->txtCognome->text() +"!");
+                                    clearDati(); //richiama il metodo per resettare i campi di input
+                                }
+                            else
+                                msgRegistrazione.setText("Selezionare il genere!");
                         else
-                            msgRegistrazione.setText("Selezionare il genere!");
+                            msgRegistrazione.setText("Per registrarsi bisogna essere maggiorenni!");
                     else
-                        msgRegistrazione.setText("Per registrarsi bisogna essere maggiorenni!");
+                        msgRegistrazione.setText("Il campo password non può essere vuoto e non può contenere il carattere ';'!");
                 else
-                    msgRegistrazione.setText("Il campo password non può essere vuoto e non può contenere il carattere ';'!");
+                    msgRegistrazione.setText("Inserire numero di telefono o e-mail in un formato corretto");
             else
-                msgRegistrazione.setText("Inserire numero di telefono o e-mail in un formato corretto");
+                msgRegistrazione.setText("La mail admin@pas.com non può essere usata per la registrazione");
         else
             msgRegistrazione.setText("Il campo cognome non può essere vuoto e non può contenere il carattere ';'");
     else
@@ -115,6 +118,14 @@ bool MainWindow::checkSurname() //controllo che il campo cognome non sia vuoto e
     else
         return true;
 }
+bool MainWindow::checkMailAdmin() //controllo che l'indirizzo mail inserito non corrisponda all'indirizzo mail dell'admin
+{
+    if (ui->txtCellMail->text() == admin.cellMail)
+        return false;
+    else
+        return true;
+}
+
 bool MainWindow::checkCellMail()
 {
     //controllo che il campo mail o numero di cellulare non sia vuoto e che sia in un formato corretto
@@ -209,7 +220,7 @@ void MainWindow::setAdminUser() //inizializzo i dati dell'utente amministratore
     admin.nome = "Luca";
     admin.cognome = "Scurati";
     admin.dataNascita = QDate::fromString("20000122", "yyyyMMdd");
-    admin.cellMail = "admin@pass.com";
+    admin.cellMail = "admin@pas.com";
     admin.password = "admin";
     admin.genere = 'M';
 }

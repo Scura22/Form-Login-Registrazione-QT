@@ -51,6 +51,7 @@ private:
     void checkDbExist(); //metodo utilizzato verificare l'esistenza del file csv
     void setAdminUser(); //metodo utilizzato in fase di inizializzazione per memorizzare le informazioni dell'utente amministratore
     bool checkIfReg(); //metodo utilizzato per controllare se l'utente è registrato
+    bool checkMailAdmin();//metodo utilizzato per controllare che la mail inserita non sia quella dell'admin
     bool checkIfAdmin();
     //metodo utilizzato per controllare se le credenziali inserite per l'accesso corrispondono con quelle dell'amministratore
     //in caso positivo, visualizza i grafici, altrimenti procede con la verifica delle credenziali dell'utente
